@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    "template",
     "day1",
     "day2",
+    # NEW
 ]
