@@ -15,3 +15,4 @@ sed -i '' "s/template/$PROJECT/" "$PROJECT/Cargo.toml"
 sed -i '' "s/\# NEW/\"$PROJECT\",\n    # NEW/g" Cargo.toml
 cargo build
 curl --cookie "session=$AOC_SESSION" "https://adventofcode.com/2022/day/$DAY/input" > "$PROJECT/src/input.txt"
+echo "Open https://adventofcode.com/2022/day/$DAY"

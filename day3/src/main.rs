@@ -19,12 +19,12 @@ mod tests {
     #[test]
     fn part1() {
         let answer = part1::run(INPUT);
-        assert_eq!(answer, 0);
+        assert_eq!(answer, 7795);
     }
 
     #[test]
     fn part2() {
         let answer = part2::run(INPUT);
-        assert_eq!(answer, 0);
+        assert_eq!(answer, 2703);
     }
 }
