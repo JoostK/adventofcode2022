@@ -23,6 +23,10 @@ impl Stacks {
         Stacks { stacks }
     }
 
+    pub fn pop_from(&mut self, index: usize) -> char {
+        self.stacks[index].pop().expect("stack should not be empty")
+    }
+
     pub fn top(&self) -> String {
         self.stacks
             .iter()
@@ -37,12 +41,14 @@ pub struct Instruction {
     pub to: usize,
 }
 
-pub fn parse_instruction(line: &str) -> Instruction {
-    let [_, quantity, _, from, _, to] = line.split(' ').collect_array();
+impl Instruction {
+    pub fn parse(line: &str) -> Self {
+        let [_, quantity, _, from, _, to] = line.split(' ').collect_array();
 
-    Instruction {
-        quantity: quantity.parse().expect("expected quantity"),
-        from: from.parse().expect("expected quantity"),
-        to: to.parse().expect("expected quantity"),
+        Self {
+            quantity: quantity.parse().expect("expected quantity"),
+            from: from.parse().expect("expected from"),
+            to: to.parse().expect("expected to"),
+        }
     }
 }
