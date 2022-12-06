@@ -1,17 +1,21 @@
-use std::collections::VecDeque;
-
 pub fn find_marker(input: &str, len: usize) -> usize {
-    let mut previous = VecDeque::with_capacity(len);
-    for (index, c) in &mut input.char_indices() {
-        if let Some(dup) = previous.iter().position(|p| p == &c) {
-            previous.drain(0..=dup);
-        }
-
-        previous.push_back(c);
-        if previous.len() == len {
-            return index + 1;
+    for index in len..input.len() {
+        if all_unique(&input[(index - len)..index]) {
+            return index;
         }
     }
 
     panic!("marker not found");
+}
+
+fn all_unique(data: &str) -> bool {
+    let mut bits = 0u32;
+    for c in data.chars() {
+        let bit = 1 << (c as u32 - 'a' as u32);
+        if bits & bit != 0 {
+            return false;
+        }
+        bits |= bit;
+    }
+    true
 }
