@@ -1,7 +1,7 @@
 use crate::common::*;
 
 pub fn run(input: &str) -> usize {
-    find_marker(&mut input.chars(), 4)
+    find_marker(input, 4)
 }
 
 #[cfg(test)]
