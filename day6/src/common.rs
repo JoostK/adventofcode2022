@@ -1,21 +1,12 @@
 pub fn find_marker(input: &str, len: usize) -> usize {
-    for index in len..input.len() {
-        if all_unique(&input[(index - len)..index]) {
-            return index;
-        }
-    }
-
-    panic!("marker not found");
+    (len..input.len())
+        .find(|&index| all_unique(&input[(index - len)..index]))
+        .expect("marker not found")
 }
 
 fn all_unique(data: &str) -> bool {
-    let mut bits = 0u32;
-    for c in data.chars() {
-        let bit = 1 << (c as u32 - 'a' as u32);
-        if bits & bit != 0 {
-            return false;
-        }
-        bits |= bit;
-    }
-    true
+    data.chars()
+        .map(|c| 1 << (c as u32 - 'a' as u32))
+        .try_fold(0u32, |bits, bit| (bits & bit == 0).then_some(bits | bit))
+        .is_some()
 }
