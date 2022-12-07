@@ -1,0 +1,45 @@
+use crate::common::calculate_sizes;
+use std::path::Path;
+
+pub fn run(input: &str) -> usize {
+    let dirs = calculate_sizes(input);
+
+    let root = *dirs.get(Path::new("/")).unwrap();
+    let free = 30_000_000 - (70_000_000 - root);
+
+    *dirs.values().filter(|&&size| size >= free).min().unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn examples() {
+        let example = "$ cd /
+$ ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+$ cd a
+$ ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+$ cd e
+$ ls
+584 i
+$ cd ..
+$ cd ..
+$ cd d
+$ ls
+4060174 j
+8033020 d.log
+5626152 d.ext
+7214296 k";
+
+        assert_eq!(run(example), 24_933_642);
+    }
+}
