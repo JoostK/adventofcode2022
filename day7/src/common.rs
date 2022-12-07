@@ -25,13 +25,9 @@ pub fn calculate_sizes(input: &str) -> HashMap<PathBuf, usize> {
                 .parse()
                 .expect("should be a file size");
 
-            let mut parent = current_dir.parent();
-            while let Some(path) = parent {
+            for path in current_dir.ancestors() {
                 *dirs.entry(path.into()).or_insert(0) += size;
-                parent = path.parent();
             }
-
-            *dirs.entry(current_dir.clone()).or_insert(0) += size;
         }
     }
 
