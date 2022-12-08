@@ -1,41 +1,36 @@
 use crate::common::*;
 
+trait CountTrees<T> {
+    fn count_trees(&mut self, predicate: impl Fn(T) -> bool) -> usize;
+}
+
+impl<T, I> CountTrees<T> for I
+where
+    I: Iterator<Item = T>,
+{
+    fn count_trees(&mut self, predicate: impl Fn(T) -> bool) -> usize {
+        let mut count = 0;
+        for v in self {
+            count += 1;
+            if !predicate(v) {
+                break;
+            }
+        }
+        count
+    }
+}
+
 impl Forest {
     fn scenic_score(&self, x: usize, y: usize) -> usize {
         let height = self.tree_height(x, y);
 
-        let mut left = 0;
-        for dx in (0..x).rev() {
-            left += 1;
-            if self.tree_height(dx, y) >= height {
-                break;
-            }
-        }
-        let mut right = 0;
-        for dx in (x + 1)..self.width {
-            right += 1;
-            if self.tree_height(dx, y) >= height {
-                break;
-            }
-        }
+        let shorter_x = |dx| self.tree_height(dx, y) < height;
+        let shorter_y = |dy| self.tree_height(x, dy) < height;
 
-        let mut up = 0;
-        for dy in (0..y).rev() {
-            up += 1;
-            if self.tree_height(x, dy) >= height {
-                break;
-            }
-        }
-
-        let mut down = 0;
-        for dy in (y + 1)..self.height {
-            down += 1;
-            if self.tree_height(x, dy) >= height {
-                break;
-            }
-        }
-
-        up * down * left * right
+        self.left_of(x).count_trees(shorter_x)
+            * self.right_of(x).count_trees(shorter_x)
+            * self.above(y).count_trees(shorter_y)
+            * self.below(y).count_trees(shorter_y)
     }
 }
 

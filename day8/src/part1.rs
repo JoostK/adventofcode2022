@@ -3,10 +3,14 @@ use crate::common::*;
 impl Forest {
     fn is_visible(&self, x: usize, y: usize) -> bool {
         let height = self.tree_height(x, y);
-        (0..x).all(|dx| self.tree_height(dx, y) < height)
-            || ((x + 1)..self.width).all(|dx| self.tree_height(dx, y) < height)
-            || (0..y).all(|dy| self.tree_height(x, dy) < height)
-            || ((y + 1)..self.height).all(|dy| self.tree_height(x, dy) < height)
+
+        let shorter_x = |dx| self.tree_height(dx, y) < height;
+        let shorter_y = |dy| self.tree_height(x, dy) < height;
+
+        self.left_of(x).all(shorter_x)
+            || self.right_of(x).all(shorter_x)
+            || self.above(y).all(shorter_y)
+            || self.below(y).all(shorter_y)
     }
 }
 

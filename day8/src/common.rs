@@ -36,4 +36,20 @@ impl Forest {
     pub fn tree_height(&self, x: usize, y: usize) -> u8 {
         self.trees[self.width * y + x]
     }
+
+    pub fn left_of(&self, x: usize) -> impl DoubleEndedIterator<Item = usize> {
+        (0..x).rev()
+    }
+
+    pub fn right_of(&self, x: usize) -> impl DoubleEndedIterator<Item = usize> {
+        (x + 1)..self.width
+    }
+
+    pub fn above(&self, y: usize) -> impl DoubleEndedIterator<Item = usize> {
+        (0..y).rev()
+    }
+
+    pub fn below(&self, y: usize) -> impl DoubleEndedIterator<Item = usize> {
+        (y + 1)..self.height
+    }
 }
