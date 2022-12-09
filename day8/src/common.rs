@@ -25,12 +25,8 @@ impl From<&str> for Forest {
 }
 
 impl Forest {
-    pub fn for_each_interior(&self, mut cb: impl FnMut((usize, usize))) {
-        for x in 1..(self.width - 1) {
-            for y in 1..(self.height - 1) {
-                cb((x, y));
-            }
-        }
+    pub fn interior(&self) -> impl Iterator<Item = (usize, usize)> + '_ {
+        (1..(self.width - 1)).flat_map(move |x| (1..(self.height - 1)).map(move |y| (x, y)))
     }
 
     pub fn tree_height(&self, x: usize, y: usize) -> u8 {

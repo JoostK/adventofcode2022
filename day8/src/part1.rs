@@ -17,14 +17,11 @@ impl Forest {
 pub fn run(input: &str) -> usize {
     let forest = Forest::from(input);
 
-    let mut visible = forest.width * 2 + forest.height * 2 - 4;
-    forest.for_each_interior(|(x, y)| {
-        if forest.is_visible(x, y) {
-            visible += 1;
-        }
-    });
-
-    visible
+    forest.width * 2 + forest.height * 2 - 4
+        + forest
+            .interior()
+            .filter(|&(x, y)| forest.is_visible(x, y))
+            .count()
 }
 
 #[cfg(test)]

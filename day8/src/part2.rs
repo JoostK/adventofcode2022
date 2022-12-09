@@ -37,13 +37,11 @@ impl Forest {
 pub fn run(input: &str) -> usize {
     let forest = Forest::from(input);
 
-    let mut max_score = 0;
-    forest.for_each_interior(|(x, y)| {
-        let score = forest.scenic_score(x, y);
-        max_score = score.max(max_score);
-    });
-
-    max_score
+    forest
+        .interior()
+        .map(|(x, y)| forest.scenic_score(x, y))
+        .max()
+        .expect("interior should not be empty")
 }
 
 #[cfg(test)]
