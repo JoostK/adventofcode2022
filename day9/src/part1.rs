@@ -1,33 +1,30 @@
 use crate::common::*;
+use shared::point::Point;
 use std::collections::BTreeSet;
 
 pub fn run(input: &str) -> usize {
-    let mut visited: BTreeSet<(i32, i32)> = Default::default();
-    let mut head = (0, 0);
-    let mut tail = (0, 0);
+    let mut visited: BTreeSet<Point> = Default::default();
+    let mut head = Point::default();
+    let mut tail = Point::default();
 
     visited.insert(tail);
 
     for line in input.lines() {
         let (dir, amount) = line.split_once(' ').unwrap();
-        let (dir_x, dir_y) = decode_direction(dir);
+        let dir: Point = decode_direction(dir).into();
         let amount: usize = amount.parse().unwrap();
 
         for _ in 0..amount {
-            head.0 += dir_x;
-            head.1 += dir_y;
+            head += dir;
 
-            let dx = (head.0 - tail.0).abs();
-            let dy = (head.1 - tail.1).abs();
-            if dx < 2 && dy < 2 {
+            let delta = (head - tail).map(isize::abs);
+            if delta.x < 2 && delta.y < 2 {
                 continue;
             }
-            if dx < dy {
-                tail.0 = head.0;
-                tail.1 = head.1 - dir_y;
+            if delta.x < delta.y {
+                tail = (head.x, head.y - dir.y).into();
             } else {
-                tail.0 = head.0 - dir_x;
-                tail.1 = head.1;
+                tail = (head.x - dir.x, head.y).into();
             }
             visited.insert(tail);
         }

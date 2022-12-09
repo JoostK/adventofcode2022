@@ -1,4 +1,4 @@
-pub fn decode_direction(dir: &str) -> (i32, i32) {
+pub fn decode_direction(dir: &str) -> (isize, isize) {
     match dir {
         "L" => (-1, 0),
         "R" => (1, 0),

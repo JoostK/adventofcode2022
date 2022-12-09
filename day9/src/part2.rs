@@ -1,37 +1,34 @@
 use crate::common::*;
+use shared::point::Point;
 use std::collections::BTreeSet;
 
 const N: usize = 10;
 
 pub fn run(input: &str) -> usize {
-    let mut visited: BTreeSet<(i32, i32)> = Default::default();
-    let mut rope = [(0i32, 0i32); N];
+    let mut visited: BTreeSet<Point> = Default::default();
+    let mut knots = [Point::default(); N];
 
-    visited.insert(rope[N - 1]);
+    visited.insert(knots[N - 1]);
 
     for line in input.lines() {
         let (dir, amount) = line.split_once(' ').unwrap();
-        let (dir_x, dir_y) = decode_direction(dir);
+        let dir: Point = decode_direction(dir).into();
         let amount: usize = amount.parse().unwrap();
 
         for _ in 0..amount {
-            rope[0].0 += dir_x;
-            rope[0].1 += dir_y;
+            knots[0] += dir;
 
-            for i in 1..rope.len() {
-                let head = rope[i - 1];
-                let tail = &mut rope[i];
-                let dx = head.0 - tail.0;
-                let dy = head.1 - tail.1;
-                if dx.abs() < 2 && dy.abs() < 2 {
+            for i in 1..N {
+                let head = knots[i - 1];
+                let tail = &mut knots[i];
+                let delta = head - *tail;
+                if delta.x.abs() < 2 && delta.y.abs() < 2 {
                     break;
                 }
-                let mx = dx - dx.signum();
-                let my = dy - dy.signum();
-                *tail = (head.0 - mx, head.1 - my);
+                *tail = head - (delta - delta.map(isize::signum));
             }
 
-            visited.insert(rope[N - 1]);
+            visited.insert(knots[N - 1]);
         }
     }
 
