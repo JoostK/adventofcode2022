@@ -3,43 +3,49 @@ use std::fmt::Write;
 const CRT_WIDTH: usize = 40;
 const CRT_HEIGHT: usize = 6;
 
-pub fn run(input: &str) -> String {
-    let mut cycle = 0;
-    let mut register_x = 1;
+struct Device {
+    pub cycle: isize,
+    pub register_x: isize,
+    pub crt: String,
+}
 
-    let mut crt = String::with_capacity((CRT_WIDTH + 1) * CRT_HEIGHT);
+impl Device {
+    pub fn tick(&mut self) {
+        self.cycle += 1;
 
-    let mut tick = |cycle: &mut isize, register_x: isize| {
-        *cycle += 1;
-
-        let column = (*cycle - 1) % CRT_WIDTH as isize;
+        let column = (self.cycle - 1) % CRT_WIDTH as isize;
         if column == 0 {
-            writeln!(crt).expect("CRT display not exceeded");
+            writeln!(self.crt).expect("CRT display not exceeded");
         }
 
-        if register_x - 1 <= column && column <= register_x + 1 {
-            write!(crt, "#").expect("CRT display not exceeded");
+        if self.register_x - 1 <= column && column <= self.register_x + 1 {
+            write!(self.crt, "#").expect("CRT display not exceeded");
         } else {
-            write!(crt, ".").expect("CRT display not exceeded");
+            write!(self.crt, ".").expect("CRT display not exceeded");
         }
+    }
+}
+
+pub fn run(input: &str) -> String {
+    let mut device = Device {
+        cycle: 0,
+        register_x: 1,
+        crt: String::with_capacity((CRT_WIDTH + 1) * CRT_HEIGHT),
     };
 
     for line in input.lines() {
         if line.starts_with("noop") {
-            tick(&mut cycle, register_x);
+            device.tick();
+        } else {
+            for _ in 0..2 {
+                device.tick();
+            }
 
-            continue;
+            device.register_x += line[5..].parse::<isize>().unwrap();
         }
-        let operand: isize = line[5..].parse().unwrap();
-
-        for _ in 0..2 {
-            tick(&mut cycle, register_x);
-        }
-
-        register_x += operand;
     }
 
-    crt
+    device.crt
 }
 
 #[cfg(test)]

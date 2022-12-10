@@ -1,31 +1,40 @@
-pub fn run(input: &str) -> usize {
-    let mut cycle = 0;
-    let mut register_x = 1;
+struct Device {
+    pub cycle: isize,
+    pub register_x: isize,
+}
 
-    let tick = |cycle: &mut isize, register_x: isize, acc: &mut isize| {
-        *cycle += 1;
-        if *cycle <= 220 && (*cycle + 20) % 40 == 0 {
-            *acc += *cycle * register_x;
+impl Device {
+    pub fn tick(&mut self) -> isize {
+        self.cycle += 1;
+
+        if self.cycle <= 220 && (self.cycle + 20) % 40 == 0 {
+            self.cycle * self.register_x
+        } else {
+            0
         }
+    }
+}
+
+pub fn run(input: &str) -> isize {
+    let mut device = Device {
+        cycle: 0,
+        register_x: 1,
     };
 
     let mut acc = 0;
     for line in input.lines() {
         if line.starts_with("noop") {
-            tick(&mut cycle, register_x, &mut acc);
+            acc += device.tick();
+        } else {
+            for _ in 0..2 {
+                acc += device.tick();
+            }
 
-            continue;
+            device.register_x += line[5..].parse::<isize>().unwrap();
         }
-        let operand: isize = line[5..].parse().unwrap();
-
-        for _ in 0..2 {
-            tick(&mut cycle, register_x, &mut acc);
-        }
-
-        register_x += operand;
     }
 
-    acc as usize
+    acc
 }
 
 #[cfg(test)]
