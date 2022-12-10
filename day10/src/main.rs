@@ -9,7 +9,7 @@ fn main() {
     println!("part 1: {}", answer);
 
     let answer = part2::run(INPUT);
-    println!("part 2: {}", answer);
+    println!("part 2: {}", String::from_utf8_lossy(&answer));
 }
 
 #[cfg(test)]
@@ -34,6 +34,7 @@ mod tests {
 ###..#..#..#...#.##.###..####..#...####.
 #....#..#.#....#..#.#.#..#..#.#....#..#.
 #....###..####..###.#..#.#..#.####.#..#."
+                .as_bytes()
         );
     }
 }

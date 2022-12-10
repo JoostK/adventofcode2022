@@ -1,12 +1,15 @@
-use std::fmt::Write;
+use std::io::{Cursor, Write};
 
 const CRT_WIDTH: usize = 40;
 const CRT_HEIGHT: usize = 6;
+const CRT_SIZE: usize = (CRT_WIDTH + 1) * CRT_HEIGHT;
+
+pub type Crt = [u8; CRT_SIZE];
 
 struct Device {
     pub cycle: isize,
     pub register_x: isize,
-    pub crt: String,
+    pub crt: Cursor<Crt>,
 }
 
 impl Device {
@@ -26,11 +29,11 @@ impl Device {
     }
 }
 
-pub fn run(input: &str) -> String {
+pub fn run(input: &str) -> Crt {
     let mut device = Device {
         cycle: 0,
         register_x: 1,
-        crt: String::with_capacity((CRT_WIDTH + 1) * CRT_HEIGHT),
+        crt: Cursor::new([b' '; CRT_SIZE]),
     };
 
     for line in input.lines() {
@@ -45,7 +48,7 @@ pub fn run(input: &str) -> String {
         }
     }
 
-    device.crt
+    device.crt.into_inner()
 }
 
 #[cfg(test)]
@@ -210,6 +213,7 @@ noop";
 #####.....#####.....#####.....#####.....
 ######......######......######......####
 #######.......#######.......#######....."
+                .as_bytes()
         );
     }
 }
