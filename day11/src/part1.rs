@@ -6,16 +6,18 @@ pub fn run(input: &str) -> usize {
     let mut items: Vec<_> = monkeys.iter().map(|m| m.items.clone()).collect();
     let mut inspections: Vec<_> = monkeys.iter().map(|_| 0usize).collect();
 
+    let mut empty = Vec::new();
     for _ in 0..20 {
         for (id, monkey) in monkeys.iter().enumerate() {
-            let taken = std::mem::take(&mut items[id]);
+            let mut taken = std::mem::replace(&mut items[id], empty);
             inspections[id] += taken.len();
-            for item in taken {
+            for item in taken.drain(..) {
                 let worry = monkey.operation.apply(item) / 3;
 
                 let next = monkey.throws_to(worry);
                 items[next].push(worry);
             }
+            empty = taken;
         }
     }
 
