@@ -15,8 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        run: cargo build
+        run: cargo build --release
       - name: Run tests
-        run: cargo test
+        run: cargo test --release
       - name: Run clippy
-        run: cargo clippy
+        run: cargo clippy --release
+      - name: Run benchmark
+        run: cargo bench --workspace --exclude template -- --quiet --quick

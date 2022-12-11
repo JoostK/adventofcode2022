@@ -20,7 +20,9 @@ fi
 
 cp -R template/ "$PROJECT"
 sed -i '' "s/template/$PROJECT/" "$PROJECT/Cargo.toml"
+sed -i '' "s/template/$PROJECT/" "$PROJECT/src/main.rs"
+sed -i '' "s/template/$PROJECT/" "$PROJECT/benches/benchmark.rs"
 sed -i '' "s/\# NEW/\"$PROJECT\",\n    # NEW/g" Cargo.toml
 cargo build
-curl --cookie "session=$SESSION" "https://adventofcode.com/2022/day/$DAY/input" > "$PROJECT/src/input.txt"
+#curl --cookie "session=$SESSION" "https://adventofcode.com/2022/day/$DAY/input" > "$PROJECT/src/input.txt"
 echo "Open https://adventofcode.com/2022/day/$DAY"

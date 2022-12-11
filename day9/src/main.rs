@@ -1,8 +1,4 @@
-mod common;
-mod part1;
-mod part2;
-
-const INPUT: &str = include_str!("input.txt");
+use day9::*;
 
 fn main() {
     let answer = part1::run(INPUT);
@@ -10,21 +6,4 @@ fn main() {
 
     let answer = part2::run(INPUT);
     println!("part 2: {}", answer);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn part1() {
-        let answer = part1::run(INPUT);
-        assert_eq!(answer, 6464);
-    }
-
-    #[test]
-    fn part2() {
-        let answer = part2::run(INPUT);
-        assert_eq!(answer, 2604);
-    }
 }
