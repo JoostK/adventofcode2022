@@ -18,17 +18,21 @@ pub fn run(input: &str) -> usize {
         for _ in 0..amount {
             knots[0] += dir;
 
+            let mut reached_tail = true;
             for i in 1..N {
                 let head = knots[i - 1];
                 let tail = &mut knots[i];
                 let delta = head - *tail;
                 if delta.x.abs() < 2 && delta.y.abs() < 2 {
+                    reached_tail = false;
                     break;
                 }
                 *tail = head - (delta - delta.map(isize::signum));
             }
 
-            visited.insert(knots[N - 1]);
+            if reached_tail {
+                visited.insert(knots[N - 1]);
+            }
         }
     }
 
