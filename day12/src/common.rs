@@ -59,8 +59,8 @@ pub fn move_point(pt: &Point, dir: Direction) -> Point {
 
 #[derive(Default)]
 pub struct Grid {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     buffer: Vec<Position>,
 }
 

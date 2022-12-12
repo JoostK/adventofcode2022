@@ -2,6 +2,21 @@ use crate::common::*;
 use shared::point::Point;
 use std::mem::swap;
 
+macro_rules! check_direction {
+    ($grid: ident, $pt: ident, $height: ident, $next_pending: ident, $distance: ident, $dir: expr) => {
+        if let Some(neighbour) = $grid.neighbour(&$pt, $dir) {
+            let position = $grid.at(neighbour);
+            let neighbour_height = position.height();
+            if $height - neighbour_height <= 1 && !position.mark_visited() {
+                if neighbour_height == 0 {
+                    return Some($distance + 1);
+                }
+                $next_pending.push(neighbour);
+            }
+        }
+    };
+}
+
 pub fn search(grid: &Grid, pt: Point) -> Option<u16> {
     let mut pending = vec![pt];
     let mut next_pending = Vec::new();
@@ -11,28 +26,10 @@ pub fn search(grid: &Grid, pt: Point) -> Option<u16> {
             let p = grid.at(pt);
             let height = p.height();
 
-            for dir in [
-                Direction::Up,
-                Direction::Down,
-                Direction::Left,
-                Direction::Right,
-            ] {
-                if let Some(neighbour) = grid.neighbour(&pt, dir) {
-                    let position = grid.at(neighbour);
-                    let neighbour_height = position.height();
-                    if height - neighbour_height > 1 {
-                        continue;
-                    }
-                    if position.mark_visited() {
-                        continue;
-                    }
-                    if neighbour_height == 0 {
-                        return Some(distance + 1);
-                    }
-
-                    next_pending.push(neighbour);
-                }
-            }
+            check_direction!(grid, pt, height, next_pending, distance, Direction::Up);
+            check_direction!(grid, pt, height, next_pending, distance, Direction::Down);
+            check_direction!(grid, pt, height, next_pending, distance, Direction::Left);
+            check_direction!(grid, pt, height, next_pending, distance, Direction::Right);
         }
 
         pending.clear();
