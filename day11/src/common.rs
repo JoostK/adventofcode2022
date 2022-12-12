@@ -2,30 +2,17 @@ use shared::iterator::ToArray;
 
 #[derive(Debug)]
 pub enum Operation {
-    Add(Operand),
-    Multiply(Operand),
-}
-
-#[derive(Debug)]
-pub enum Operand {
-    Value(usize),
-    Old,
+    Add(usize),
+    Multiply(usize),
+    Square,
 }
 
 impl Operation {
-    pub fn apply(&self, input: usize) -> usize {
+    pub fn apply(&self, old: usize) -> usize {
         match self {
-            Operation::Add(op) => input + op.evaluate(input),
-            Operation::Multiply(op) => input * op.evaluate(input),
-        }
-    }
-}
-
-impl Operand {
-    fn evaluate(&self, input: usize) -> usize {
-        match self {
-            Operand::Value(v) => *v,
-            Operand::Old => input,
+            Operation::Add(op) => old + op,
+            Operation::Multiply(op) => old * op,
+            Operation::Square => old * old,
         }
     }
 }
@@ -81,14 +68,13 @@ fn parse_operation(input: &str) -> Operation {
     let mut parts = input.rsplitn(3, ' ');
     let operand = parts.next().unwrap();
 
-    let op = match operand {
-        "old" => Operand::Old,
-        v => Operand::Value(v.parse().unwrap()),
-    };
+    if operand == "old" {
+        return Operation::Square;
+    }
 
     match parts.next().unwrap() {
-        "+" => Operation::Add(op),
-        "*" => Operation::Multiply(op),
+        "+" => Operation::Add(operand.parse().unwrap()),
+        "*" => Operation::Multiply(operand.parse().unwrap()),
         op => panic!("invalid op {op}"),
     }
 }

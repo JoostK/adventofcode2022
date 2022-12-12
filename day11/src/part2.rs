@@ -1,4 +1,5 @@
 use crate::common::*;
+use std::slice;
 
 pub fn run(input: &str) -> usize {
     let monkeys = parse(input);
@@ -8,18 +9,20 @@ pub fn run(input: &str) -> usize {
 
     let modulus: usize = monkeys.iter().map(|m| m.divider).product();
 
-    let mut empty = Vec::new();
     for _ in 0..10_000 {
         for (id, monkey) in monkeys.iter().enumerate() {
-            let mut taken = std::mem::replace(&mut items[id], empty);
+            // SAFETY: monkeys always throw to other monkeys, so `next` below is never `id` meaning
+            // that `items[id]` is guaranteed not to move nor resize, so creating a slice is safe.
+            let taken =
+                unsafe { slice::from_raw_parts_mut(items[id].as_mut_ptr(), items[id].len()) };
             inspections[id] += taken.len();
-            for item in taken.drain(..) {
-                let worry = monkey.operation.apply(item) % modulus;
+            for item in taken {
+                let worry = monkey.operation.apply(*item) % modulus;
 
                 let next = monkey.throws_to(worry);
                 items[next].push(worry);
             }
-            empty = taken;
+            items[id].clear();
         }
     }
 
