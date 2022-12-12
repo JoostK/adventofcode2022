@@ -6,7 +6,7 @@ if [ -z "$SESSION" ]; then
 fi
 
 # Read the day from the first argument or default to today's day.
-DAY=${1:-"$(date +%-d)"}
+DAY=${1:-"$(date +%d)"}
 if [ -z "$DAY" ]; then
   echo "Missing day argument"
   exit 1

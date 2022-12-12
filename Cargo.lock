@@ -177,10 +177,72 @@ dependencies = [
 ]
 
 [[package]]
-name = "day1"
+name = "day01"
 version = "0.1.0"
 dependencies = [
  "criterion",
+]
+
+[[package]]
+name = "day02"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+]
+
+[[package]]
+name = "day03"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+]
+
+[[package]]
+name = "day04"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "shared",
+]
+
+[[package]]
+name = "day05"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "shared",
+]
+
+[[package]]
+name = "day06"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "shared",
+]
+
+[[package]]
+name = "day07"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "shared",
+]
+
+[[package]]
+name = "day08"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "shared",
+]
+
+[[package]]
+name = "day09"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "shared",
 ]
 
 [[package]]
@@ -201,68 +263,6 @@ dependencies = [
 
 [[package]]
 name = "day12"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "shared",
-]
-
-[[package]]
-name = "day2"
-version = "0.1.0"
-dependencies = [
- "criterion",
-]
-
-[[package]]
-name = "day3"
-version = "0.1.0"
-dependencies = [
- "criterion",
-]
-
-[[package]]
-name = "day4"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "shared",
-]
-
-[[package]]
-name = "day5"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "shared",
-]
-
-[[package]]
-name = "day6"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "shared",
-]
-
-[[package]]
-name = "day7"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "shared",
-]
-
-[[package]]
-name = "day8"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "shared",
-]
-
-[[package]]
-name = "day9"
 version = "0.1.0"
 dependencies = [
  "criterion",
