@@ -1,23 +1,12 @@
 use crate::common::*;
 
-fn divider_id(items: &Vec<Item>) -> Option<usize> {
-    if items.len() != 1 {
-        return None;
-    }
-    let inner = if let Item::List(inner) = &items[0] {
-        inner
-    } else {
-        return None;
-    };
-
-    if inner.len() != 1 {
-        return None;
-    }
-
-    if let Item::Singleton(v) = inner[0] {
-        Some(v)
-    } else {
-        None
+fn divider_id(items: &[Item]) -> Option<usize> {
+    match items {
+        [Item::List(v)] => match v[..] {
+            [Item::Singleton(v)] => Some(v),
+            _ => None,
+        },
+        _ => None,
     }
 }
 
