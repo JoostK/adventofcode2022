@@ -1,16 +1,13 @@
 use crate::common::*;
 
 pub fn run(input: &str) -> usize {
-    let d2 = vec![Item::List(vec![Item::Singleton(2)])];
-    let d6 = vec![Item::List(vec![Item::Singleton(6)])];
     let (i2, i6) = input
         .lines()
         .filter(|l| !l.is_empty())
-        .map(parse_items)
-        .fold((1, 2), |(i2, i6), items| {
-            if compare_items(&d2, &items).is_gt() {
+        .fold((1, 2), |(i2, i6), line| {
+            if compare_items("[[2]]", line).is_gt() {
                 (i2 + 1, i6 + 1)
-            } else if compare_items(&d6, &items).is_gt() {
+            } else if compare_items("[[6]]", line).is_gt() {
                 (i2, i6 + 1)
             } else {
                 (i2, i6)

@@ -6,8 +6,8 @@ pub fn run(input: &str) -> usize {
         .split("\n\n")
         .enumerate()
         .filter_map(|(index, line)| {
-            let [p1, p2] = line.lines().map(parse_items).collect_array();
-            compare_items(&p1, &p2).is_lt().then_some(index + 1)
+            let [p1, p2] = line.lines().collect_array();
+            compare_items(p1, p2).is_lt().then_some(index + 1)
         })
         .sum()
 }
