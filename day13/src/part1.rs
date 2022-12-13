@@ -1,6 +1,5 @@
 use crate::common::*;
 use shared::iterator::ToArray;
-use std::cmp::Ordering;
 
 pub fn run(input: &str) -> usize {
     input
@@ -8,7 +7,7 @@ pub fn run(input: &str) -> usize {
         .enumerate()
         .filter_map(|(index, line)| {
             let [p1, p2] = line.lines().map(parse_items).collect_array();
-            (compare_items(&p1, &p2) == Ordering::Less).then_some(index + 1)
+            compare_items(&p1, &p2).is_lt().then_some(index + 1)
         })
         .sum()
 }
