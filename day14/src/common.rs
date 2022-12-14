@@ -39,8 +39,7 @@ impl Grid {
     }
 
     #[inline]
-    pub fn mark(&mut self, pt: Point) -> bool {
-        let index = self.index(pt);
+    pub fn mark(&mut self, index: usize) -> bool {
         let bucket = index >> SHIFT;
         let bit = 1 << (index & MASK);
         let set = self.particles[bucket] & bit == 0;
@@ -55,14 +54,13 @@ impl Grid {
         (self.particles[bucket], shift)
     }
 
-    pub fn bit_mut(&mut self, x: usize, y: usize) -> (&mut u64, usize) {
-        let index = y * self.width + (x - self.zero.x as usize);
+    pub fn bit_mut(&mut self, index: usize) -> (&mut u64, usize) {
         let bucket = index >> SHIFT;
         let shift = index & MASK;
         (&mut self.particles[bucket], shift)
     }
 
-    fn index(&self, pt: Point) -> usize {
+    pub fn index(&self, pt: Point) -> usize {
         (pt.y - self.zero.y) as usize * self.width + (pt.x - self.zero.x) as usize
     }
 }

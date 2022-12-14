@@ -8,8 +8,11 @@ pub fn run(input: &str) -> usize {
     let floor = max.y + 2;
     max.y = floor - 1;
 
-    min.x = min.x.min(sand_start.x - floor);
-    max.x = max.x.max(sand_start.x + floor);
+    // Ensure that at least `floor` amount of space is available on both sides of the starting point
+    // to allow filling the whole triangle below it. Also allocate additional vertical buffers to
+    // avoid checks for having reached the edges.
+    min.x = min.x.min(sand_start.x - floor - 1);
+    max.x = max.x.max(sand_start.x + floor + 1);
 
     let width = (max.x - min.x + 1) as usize;
     let height = (max.y - min.y + 1) as usize;
@@ -19,18 +22,21 @@ pub fn run(input: &str) -> usize {
 
     let mut units = 1;
 
-    let mut q = vec![sand_start];
+    let mut q = vec![grid.index(sand_start)];
     while let Some(p) = q.pop() {
-        let down = Point::new(p.x, p.y + 1);
+        let down = p + grid.width;
 
-        let fall = down.y != floor - 1;
+        let fall = (down / grid.width) as isize != floor - 1;
 
-        let (bucket, shift) = grid.bit_mut(p.x as usize, down.y as usize);
+        let (bucket, shift) = grid.bit_mut(down);
         if shift != 0 && shift != BITS - 1 {
             let s = shift - 1;
             // Fast path where all three target positions are stored in the same bucket; we can then
             // query their status at once.
-            let t = *bucket >> s;
+            let t = (*bucket >> s) & 0b111;
+            if t == 0b111 {
+                continue;
+            }
 
             *bucket |= 0b111 << s;
 
@@ -42,19 +48,24 @@ pub fn run(input: &str) -> usize {
                 }
             }
 
-            if p.x != grid.zero.x && t & 0b001 == 0 {
+            debug_assert_ne!((p % grid.width) as isize, grid.zero.x);
+            if t & 0b001 == 0 {
                 units += 1;
 
                 if fall {
-                    q.push(Point::new(down.x - 1, down.y));
+                    q.push(down - 1);
                 }
             }
 
-            if p.x != (grid.width as isize - grid.zero.x) && t & 0b100 == 0 {
+            debug_assert_ne!(
+                (p % grid.width) as isize,
+                (grid.width as isize - grid.zero.x)
+            );
+            if t & 0b100 == 0 {
                 units += 1;
 
                 if fall {
-                    q.push(Point::new(down.x + 1, down.y));
+                    q.push(down + 1);
                 }
             }
         } else {
@@ -66,24 +77,26 @@ pub fn run(input: &str) -> usize {
                 }
             }
 
-            if p.x != grid.zero.x {
-                let left = Point::new(down.x - 1, down.y);
-                if grid.mark(left) {
-                    units += 1;
+            debug_assert_ne!((p % grid.width) as isize, grid.zero.x);
+            let left = down - 1;
+            if grid.mark(left) {
+                units += 1;
 
-                    if fall {
-                        q.push(left);
-                    }
+                if fall {
+                    q.push(left);
                 }
             }
-            if p.x != (grid.width as isize - grid.zero.x) {
-                let right = Point::new(down.x + 1, down.y);
-                if grid.mark(right) {
-                    units += 1;
 
-                    if fall {
-                        q.push(right);
-                    }
+            debug_assert_ne!(
+                (p % grid.width) as isize,
+                (grid.width as isize - grid.zero.x)
+            );
+            let right = down + 1;
+            if grid.mark(right) {
+                units += 1;
+
+                if fall {
+                    q.push(right);
                 }
             }
         }

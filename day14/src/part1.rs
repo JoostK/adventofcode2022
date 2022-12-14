@@ -3,7 +3,11 @@ use shared::point::Point;
 
 pub fn run(input: &str) -> usize {
     let sand_start = Point::new(500, 0);
-    let (min, max, rocks) = parse_rocks(input, sand_start);
+    let (mut min, mut max, rocks) = parse_rocks(input, sand_start);
+
+    // Allocate vertical buffers to avoid checks for having reached the edges.
+    min.x -= 1;
+    max.x += 1;
 
     let width = (max.x - min.x + 1) as usize;
     let height = (max.y - min.y + 1) as usize;
@@ -12,10 +16,9 @@ pub fn run(input: &str) -> usize {
     place_rocks(&mut grid, rocks);
 
     let mut units = 0;
-    let mut start = sand_start;
-    while let Some((p, resume)) = simulate_sand(&grid, start) {
+    let mut path = vec![sand_start];
+    while let Some(p) = simulate_sand(&grid, &mut path) {
         grid.set(p);
-        start = resume.unwrap_or(sand_start);
 
         units += 1;
     }
@@ -23,10 +26,9 @@ pub fn run(input: &str) -> usize {
     units
 }
 
-fn simulate_sand(grid: &Grid, spawn: Point) -> Option<(Point, Option<Point>)> {
-    let mut p = spawn;
-    let mut resume = None;
+fn simulate_sand(grid: &Grid, path: &mut Vec<Point>) -> Option<Point> {
     loop {
+        let p = *path.last()?;
         let y = p.y as usize + 1;
         if y == grid.height {
             return None;
@@ -36,58 +38,53 @@ fn simulate_sand(grid: &Grid, spawn: Point) -> Option<(Point, Option<Point>)> {
         if shift != 0 && shift != BITS - 1 {
             // Fast path where all three target positions are stored in the same bucket; we can then
             // query their status at once.
+            // Note: this hardly helps for part one. In fact, storing just a Vec<bool> without any
+            // bit fiddling is slightly faster even but this would require a different Grid
+            // implementation compared to part two, where this optimization does show a ~13%
+            // performance improvement.
             let t = bucket >> (shift - 1);
 
             if t & 0b010 == 0 {
-                resume = Some(p);
-                p = Point::new(p.x, y as isize);
+                path.push(Point::new(p.x, y as isize));
                 continue;
             }
 
-            if p.x == grid.zero.x {
-                return None;
-            }
+            debug_assert_ne!(p.x, grid.zero.x);
             if t & 0b001 == 0 {
-                resume = Some(p);
-                p = Point::new(p.x - 1, y as isize);
+                path.push(Point::new(p.x - 1, y as isize));
                 continue;
             }
 
-            if p.x == (grid.width as isize - grid.zero.x) {
-                return None;
-            }
+            debug_assert_ne!(p.x, (grid.width as isize - grid.zero.x));
             if t & 0b100 == 0 {
-                resume = Some(p);
-                p = Point::new(p.x + 1, y as isize);
+                path.push(Point::new(p.x + 1, y as isize));
                 continue;
             }
         } else {
             let down = Point::new(p.x, y as isize);
             if !grid.is_set(down) {
-                resume = Some(p);
-                p = down;
+                path.push(down);
                 continue;
             }
 
-            if p.x != grid.zero.x {
-                let left = Point::new(down.x - 1, down.y);
-                if !grid.is_set(left) {
-                    resume = Some(p);
-                    p = left;
-                    continue;
-                }
+            debug_assert_ne!(p.x, grid.zero.x);
+            let left = Point::new(down.x - 1, down.y);
+            if !grid.is_set(left) {
+                path.push(left);
+                continue;
             }
-            if p.x != (grid.width as isize - grid.zero.x) {
-                let right = Point::new(down.x + 1, down.y);
-                if !grid.is_set(right) {
-                    resume = Some(p);
-                    p = right;
-                    continue;
-                }
+
+            debug_assert_ne!(p.x, (grid.width as isize - grid.zero.x));
+            let right = Point::new(down.x + 1, down.y);
+            if !grid.is_set(right) {
+                path.push(right);
+                continue;
             }
         };
 
-        return Some((p, resume));
+        path.pop();
+
+        return Some(p);
     }
 }
 
