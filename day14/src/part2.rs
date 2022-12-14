@@ -3,51 +3,89 @@ use shared::point::Point;
 
 pub fn run(input: &str) -> usize {
     let sand_start = Point::new(500, 0);
-    let (mut min, mut max, mut rocks) = parse_rocks(input, sand_start);
+    let (mut min, mut max, rocks) = parse_rocks(input, sand_start);
 
     let floor = max.y + 2;
-    max.y = floor;
+    max.y = floor - 1;
 
-    let spread = floor - sand_start.y;
-    let min_x = sand_start.x - spread;
-    let max_x = sand_start.x + spread;
-
-    min.x = min.x.min(min_x);
-    max.x = max.x.max(max_x);
-    rocks.push(Rock {
-        lines: vec![(Point::new(min_x, floor), Point::new(max_x, floor))],
-    });
+    min.x = min.x.min(sand_start.x - floor);
+    max.x = max.x.max(sand_start.x + floor);
 
     let width = (max.x - min.x + 1) as usize;
     let height = (max.y - min.y + 1) as usize;
-    let mut grid = Grid {
-        zero: min,
-        width,
-        height,
-        particles: vec![Particle::Air; width * height],
-    };
+    let mut grid = Grid::new(min, width, height);
 
-    for rock in rocks {
-        for (s, e) in rock.lines {
-            let dir = (e - s).map(isize::signum);
-            let mut c = s;
-            loop {
-                *grid.at_mut(c) = Particle::Rock;
-                if c == e {
-                    break;
+    place_rocks(&mut grid, rocks);
+
+    let mut units = 1;
+
+    let mut q = vec![sand_start];
+    while let Some(p) = q.pop() {
+        let down = Point::new(p.x, p.y + 1);
+
+        let fall = down.y != floor - 1;
+
+        let (bucket, shift) = grid.bit_mut(p.x as usize, down.y as usize);
+        if shift != 0 && shift != BITS - 1 {
+            let s = shift - 1;
+            // Fast path where all three target positions are stored in the same bucket; we can then
+            // query their status at once.
+            let t = *bucket >> s;
+
+            *bucket |= 0b111 << s;
+
+            if t & 0b010 == 0 {
+                units += 1;
+
+                if fall {
+                    q.push(down);
                 }
-                c += dir;
             }
-        }
-    }
 
-    let mut units = 0;
-    while let Some(p) = simulate_sand(&grid, sand_start) {
-        *grid.at_mut(p) = Particle::Sand;
-        units += 1;
+            if p.x != grid.zero.x && t & 0b001 == 0 {
+                units += 1;
 
-        if p == sand_start {
-            break;
+                if fall {
+                    q.push(Point::new(down.x - 1, down.y));
+                }
+            }
+
+            if p.x != (grid.width as isize - grid.zero.x) && t & 0b100 == 0 {
+                units += 1;
+
+                if fall {
+                    q.push(Point::new(down.x + 1, down.y));
+                }
+            }
+        } else {
+            if grid.mark(down) {
+                units += 1;
+
+                if fall {
+                    q.push(down);
+                }
+            }
+
+            if p.x != grid.zero.x {
+                let left = Point::new(down.x - 1, down.y);
+                if grid.mark(left) {
+                    units += 1;
+
+                    if fall {
+                        q.push(left);
+                    }
+                }
+            }
+            if p.x != (grid.width as isize - grid.zero.x) {
+                let right = Point::new(down.x + 1, down.y);
+                if grid.mark(right) {
+                    units += 1;
+
+                    if fall {
+                        q.push(right);
+                    }
+                }
+            }
         }
     }
 
