@@ -1,4 +1,5 @@
 use crate::common::*;
+use shared::direction::Direction;
 use shared::point::Point;
 use std::mem::swap;
 
