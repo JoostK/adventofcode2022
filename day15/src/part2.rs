@@ -1,10 +1,14 @@
 use shared::point::Point;
-use std::ops::RangeInclusive;
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub struct Sensor {
     pos: Point,
-    closest_beacon: Point,
+    distance: isize,
+    left: Point,
+    right: Point,
+    top: Point,
+    bottom: Point,
 }
 
 pub fn parse_sensors(input: &str) -> Vec<Sensor> {
@@ -12,11 +16,27 @@ pub fn parse_sensors(input: &str) -> Vec<Sensor> {
 }
 
 fn parse_sensor(input: &str) -> Sensor {
-    let (sensor, baecon) = input.split_once(':').unwrap();
+    let (sensor, beacon) = input.split_once(':').unwrap();
+
+    let pos = parse_coord(sensor);
+    let closest_beacon = parse_coord(beacon);
+    let dx = (closest_beacon.x - pos.x).abs();
+    let dy = (closest_beacon.y - pos.y).abs();
+    let distance = dx + dy;
+    let perimeter = distance + 1;
+
+    let right = Point::new(pos.x + perimeter, pos.y);
+    let bottom = Point::new(pos.x, pos.y + perimeter);
+    let left = Point::new(pos.x - perimeter, pos.y);
+    let top = Point::new(pos.x, pos.y - perimeter);
 
     Sensor {
-        pos: parse_coord(sensor),
-        closest_beacon: parse_coord(baecon),
+        pos,
+        distance,
+        right,
+        bottom,
+        left,
+        top,
     }
 }
 
@@ -28,50 +48,105 @@ fn parse_coord(data: &str) -> Point {
     Point::new(x.parse().unwrap(), y.parse().unwrap())
 }
 
-pub fn run(input: &str, max: isize) -> usize {
-    let sensors = parse_sensors(input);
+impl Sensor {
+    pub fn reaches(&self, pt: Point) -> bool {
+        let dx = (pt.x - self.pos.x).abs();
+        let dy = (pt.y - self.pos.y).abs();
+        dx + dy <= self.distance
+    }
+}
 
-    let mut ranges = Vec::<RangeInclusive<isize>>::new();
+fn intersect_segments(
+    down_start: Point,
+    down_end: Point,
+    up_start: Point,
+    up_end: Point,
+) -> Option<Point> {
+    //     X=0
+    // Y=10    down_start  up_end
+    //             \         /
+    //              \       /
+    //               \     /
+    //                \   /
+    //                 \ /
+    //                  X
+    //                 / \
+    //                /   \
+    //               /     \
+    //              /       \
+    //  Y=0  up_start   down_end
 
-    let (mut x, mut y) = (0usize, 0usize);
-    for row_y in 0..max {
-        ranges.clear();
-        for s in &sensors {
-            let (dx, dy) = (s.closest_beacon - s.pos).into();
-            let distance = dx.abs() + dy.abs();
+    debug_assert!(down_start.x < down_end.x);
+    debug_assert!(down_start.y > down_end.y);
+    debug_assert!(up_start.x < up_end.x);
+    debug_assert!(up_start.y < up_end.y);
 
-            let dy = distance - (row_y - s.pos.y).abs();
-            if dy >= 0 {
-                let mut start = s.pos.x - dy;
-                let mut end = s.pos.x + dy;
+    let c1 = down_start.x + down_start.y;
+    let c2 = up_start.x - up_start.y;
+    let mut x = c1 + c2;
+    if x & 1 == 1 {
+        return None;
+    }
 
-                ranges.retain_mut(|r| {
-                    if &start <= r.end() && &end >= r.start() {
-                        start = start.min(*r.start());
-                        end = end.max(*r.end());
-                        return false;
-                    }
-                    true
-                });
+    // x = (c1 + c2) / 2;
+    x >>= 1;
+    if x < down_start.x || x > down_end.x || x < up_start.x || x > up_end.x {
+        return None;
+    }
 
-                ranges.push(start..=end);
-            }
-        }
+    let y = c1 - x;
+    Some(Point::new(x, y))
+}
 
-        if ranges.len() > 1 {
-            if ranges[0].start() > ranges[1].end() {
-                assert_eq!(ranges[1].end() + 2, *ranges[0].start());
-                (x, y) = (*ranges[1].end() as usize + 1, row_y as usize);
-                break;
-            } else {
-                assert_eq!(ranges[0].end() + 2, *ranges[1].start());
-                (x, y) = (*ranges[0].end() as usize + 1, row_y as usize);
-                break;
+fn intersect_perimeter(s1: &Sensor, s2: &Sensor) -> [Option<Point>; 8] {
+    [
+        intersect_segments(s1.bottom, s1.right, s2.left, s2.bottom),
+        intersect_segments(s2.bottom, s2.right, s1.left, s1.bottom),
+        intersect_segments(s1.bottom, s1.right, s2.top, s2.right),
+        intersect_segments(s2.bottom, s2.right, s1.top, s1.right),
+        intersect_segments(s1.left, s1.top, s2.left, s2.bottom),
+        intersect_segments(s2.left, s2.top, s1.left, s1.bottom),
+        intersect_segments(s1.left, s1.top, s2.top, s2.right),
+        intersect_segments(s2.left, s2.top, s1.top, s1.right),
+    ]
+}
+
+fn find_beacon(sensors: &[Sensor], max: isize) -> Option<Point> {
+    let mut counts = BTreeMap::new();
+    for (i, s1) in sensors.iter().enumerate() {
+        for s2 in &sensors[(i + 1)..] {
+            let intersections = intersect_perimeter(s1, s2);
+            for intersection in intersections.iter().filter_map(|&i| i) {
+                if intersection.x < 0
+                    || intersection.x > max
+                    || intersection.y < 0
+                    || intersection.y > max
+                {
+                    continue;
+                }
+
+                if sensors.iter().any(|sensor| sensor.reaches(intersection)) {
+                    continue;
+                }
+
+                let entry = counts.entry(intersection).or_insert(0);
+                if *entry == 3 {
+                    return Some(intersection);
+                }
+                *entry += 1;
             }
         }
     }
 
-    x * 4_000_000 + y as usize
+    None
+}
+
+pub fn run(input: &str, max: isize) -> usize {
+    let sensors = parse_sensors(input);
+
+    let beacon = find_beacon(&sensors, max).expect("should find beacon");
+
+    beacon.x as usize * 4_000_000 + beacon.y as usize
 }
 
 #[cfg(test)]
