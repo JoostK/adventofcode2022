@@ -14,8 +14,11 @@ pub fn run(input: &str) -> isize {
             let pos = indices.iter().position(|n| n == &index).unwrap();
             let new_pos = (pos as isize + num).rem_euclid(n as isize - 1) as usize;
 
-            indices.remove(pos);
-            indices.insert(new_pos, index);
+            if pos < new_pos {
+                indices[pos..=new_pos].rotate_left(1);
+            } else {
+                indices[new_pos..=pos].rotate_right(1);
+            }
         }
     }
 
