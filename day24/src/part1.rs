@@ -1,10 +1,9 @@
 use crate::common::*;
-use std::collections::HashSet;
 
 pub fn run(input: &str) -> usize {
     let grid = Grid::from(input);
 
-    let (distance, _) = walk(HashSet::from([0]), grid.width * (grid.height - 1) - 1, grid);
+    let (distance, _) = walk(0, grid.width * (grid.height - 1) - 1, grid);
     distance + 1
 }
 

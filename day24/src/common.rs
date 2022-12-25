@@ -1,5 +1,4 @@
 use shared::direction::Direction;
-use std::collections::HashSet;
 use std::fmt::{Display, Formatter, Write};
 
 #[derive(Clone)]
@@ -7,6 +6,7 @@ pub struct Blizzard {
     pub direction: Direction,
 }
 
+#[derive(Clone)]
 pub struct Grid {
     pub width: usize,
     pub height: usize,
@@ -82,12 +82,10 @@ impl From<&str> for Grid {
 }
 
 impl Grid {
-    fn simulate(&self) -> Self {
-        let mut clone = Grid {
-            width: self.width,
-            height: self.height,
-            blizzards: vec![Vec::new(); self.blizzards.len()],
-        };
+    fn simulate(&self, into: &mut Grid) {
+        for b in &mut into.blizzards {
+            b.clear();
+        }
         for (c, blizzards) in self.blizzards.iter().enumerate() {
             for b in blizzards {
                 let new_c = match b.direction {
@@ -120,11 +118,9 @@ impl Grid {
                         }
                     }
                 };
-                clone.blizzards[new_c].push(b.clone());
+                into.blizzards[new_c].push(b.clone());
             }
         }
-
-        clone
     }
 
     fn is_free(&self, c: usize) -> bool {
@@ -132,41 +128,59 @@ impl Grid {
     }
 }
 
-pub fn walk(yous: HashSet<usize>, goal: usize, begin: Grid) -> (usize, Grid) {
-    if yous.contains(&goal) {
-        return (0, begin);
+pub fn walk(start: usize, goal: usize, mut grid: Grid) -> (usize, Grid) {
+    let mut depth = 0;
+
+    let width = grid.width;
+    let height = grid.height;
+
+    let mut marked = vec![false; grid.width * grid.height];
+    let mut next_marked = marked.clone();
+
+    let mut pending = Vec::with_capacity(marked.len());
+    let mut next_pending = pending.clone();
+
+    pending.push(start);
+
+    let mut next_grid = grid.clone();
+    while !marked[goal] {
+        grid.simulate(&mut next_grid);
+
+        for &c in &pending {
+            marked[c] = false;
+            let x = c % width;
+            let y = c / width;
+
+            if y != height - 1 && x > 0 && !next_marked[c - 1] && next_grid.is_free(c - 1) {
+                next_marked[c - 1] = true;
+                next_pending.push(c - 1);
+            }
+            if y != 0 && x < width - 1 && !next_marked[c + 1] && next_grid.is_free(c + 1) {
+                next_marked[c + 1] = true;
+                next_pending.push(c + 1);
+            }
+            if y > 1 && !next_marked[c - width] && next_grid.is_free(c - width) {
+                next_marked[c - width] = true;
+                next_pending.push(c - width);
+            }
+            if y < height - 2 && !next_marked[c + width] && next_grid.is_free(c + width) {
+                next_marked[c + width] = true;
+                next_pending.push(c + width);
+            }
+
+            if !next_marked[c] && next_grid.is_free(c) {
+                next_marked[c] = true;
+                next_pending.push(c);
+            }
+        }
+
+        pending.clear();
+
+        std::mem::swap(&mut grid, &mut next_grid);
+        std::mem::swap(&mut marked, &mut next_marked);
+        std::mem::swap(&mut pending, &mut next_pending);
+        depth += 1;
     }
-    let next = begin.simulate();
 
-    let width = begin.width;
-    let height = begin.height;
-
-    let mut next_yous = HashSet::new();
-    for you in yous {
-        let x = you % width;
-        let y = you / width;
-
-        if y != 0 && x < width - 1 && next.is_free(you + 1) {
-            next_yous.insert(you + 1);
-        }
-
-        if y < height - 2 && next.is_free(you + width) {
-            next_yous.insert(you + width);
-        }
-
-        if y != height - 1 && x > 0 && next.is_free(you - 1) {
-            next_yous.insert(you - 1);
-        }
-
-        if y > 1 && next.is_free(you - width) {
-            next_yous.insert(you - width);
-        }
-
-        if next.is_free(you) {
-            next_yous.insert(you);
-        }
-    }
-
-    let (distance, grid) = walk(next_yous, goal, next);
-    (distance + 1, grid)
+    (depth, grid)
 }
