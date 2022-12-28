@@ -11,7 +11,7 @@ pub fn run(input: &str) -> usize {
     let mut maxx = isize::MIN;
     let mut miny = isize::MAX;
     let mut maxy = isize::MIN;
-    for &(x, y) in &grid.elves {
+    for (x, y) in grid.elves() {
         minx = minx.min(x);
         maxx = maxx.max(x);
         miny = miny.min(y);
@@ -21,7 +21,7 @@ pub fn run(input: &str) -> usize {
     let width = (maxx - minx + 1) as usize;
     let height = (maxy - miny + 1) as usize;
 
-    width * height - grid.elves.len()
+    width * height - grid.elves().count()
 }
 
 #[cfg(test)]
